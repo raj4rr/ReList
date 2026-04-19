@@ -9,6 +9,7 @@ export function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
+  const mobileAppUrl = (import.meta.env.VITE_MOBILE_APP_URL || "").trim();
 
   useEffect(() => {
     let timer = null;
@@ -69,9 +70,17 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="hidden sm:flex">
-            Download Mobile App
-          </Button>
+          {mobileAppUrl ? (
+            <Button variant="outline" className="hidden sm:flex" asChild>
+              <a href={mobileAppUrl} target="_blank" rel="noreferrer">
+                Download Mobile App
+              </a>
+            </Button>
+          ) : (
+            <Button variant="outline" className="hidden sm:flex" disabled title="Set VITE_MOBILE_APP_URL to enable this">
+              Download Mobile App
+            </Button>
+          )}
 
           {user ? (
             <>

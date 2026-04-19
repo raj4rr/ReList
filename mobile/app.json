@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "ReList Mobile",
+    "slug": "relist-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "com.relist.mobile"
+    },
+    "ios": {
+      "bundleIdentifier": "com.relist.mobile"
+    }
+  }
+}
