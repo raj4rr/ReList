@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 38 31% 95%;
+  --foreground: 210 30% 13%;
+  --card: 0 0% 100%;
+  --card-foreground: 210 30% 13%;
+  --primary: 18 91% 45%;
+  --primary-foreground: 48 100% 97%;
+  --secondary: 140 24% 30%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 37 18% 88%;
+  --muted-foreground: 212 14% 35%;
+  --border: 34 20% 80%;
+  --input: 34 20% 78%;
+  --ring: 18 91% 45%;
+}
+
+body {
+  margin: 0;
+  font-family: "Manrope", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at top right, #ffe7c2 0%, #f3ece2 45%, #efe8dd 100%);
+  color: hsl(var(--foreground));
+}
