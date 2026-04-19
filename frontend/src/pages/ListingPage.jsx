@@ -6,6 +6,17 @@ import { api, apiBase } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { formatINR } from "../lib/currency";
 import { applySEO, buildListingSEO } from "../lib/seo";
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix for default markers in react-leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 export default function ListingPage() {
   const { id } = useParams();
@@ -150,6 +161,68 @@ export default function ListingPage() {
           </div>
         </div>
       ) : null}
+
+      {/* Location Map Section */}
+      {item.latitude && item.longitude && (
+        <div className="mt-8">
+          <Card className="p-4">
+            <h2 className="mb-4 text-xl font-semibold">Location</h2>
+            <div className="h-64 w-full rounded-md overflow-hidden">
+              <MapContainer
+                center={[parseFloat(item.latitude), parseFloat(item.longitude)]}
+                zoom={15}
+                style={{ height: '100%', width: '100%' }}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+                <Marker position={[parseFloat(item.latitude), parseFloat(item.longitude)]}>
+                  <Popup>
+                    <div className="min-w-[200px]">
+                      <h3 className="font-semibold text-sm mb-1">{item.title}</h3>
+                      <p className="text-sm font-bold text-primary mb-1">{formatINR(item.price)}</p>
+                      <p className="text-xs text-muted-foreground mb-2">{item.city || "Unknown city"}</p>
+                      <Button
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          const url = `https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`;
+                          window.open(url, '_blank');
+                        }}
+                      >
+                        Get Directions
+                      </Button>
+                    </div>
+                  </Popup>
+                </Marker>
+              </MapContainer>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const url = `https://www.google.com/maps/search/?api=1&query=${item.latitude},${item.longitude}`;
+                  window.open(url, '_blank');
+                }}
+              >
+                Open in Google Maps
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const url = `https://maps.apple.com/?daddr=${item.latitude},${item.longitude}`;
+                  window.open(url, '_blank');
+                }}
+              >
+                Open in Apple Maps
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

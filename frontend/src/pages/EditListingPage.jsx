@@ -13,6 +13,9 @@ export default function EditListingPage() {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [cities, setCities] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
     title: "",
@@ -51,6 +54,7 @@ export default function EditListingPage() {
           latitude: item.latitude || "",
           longitude: item.longitude || "",
         });
+        setExistingImages(item.images || []);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -59,6 +63,13 @@ export default function EditListingPage() {
   useEffect(() => {
     applySEO(seo);
   }, [seo.titleTag, seo.metaDescription, seo.keywords]);
+
+  useEffect(() => {
+    const files = Array.from(newImages || []);
+    const urls = files.map((file) => URL.createObjectURL(file));
+    setPreviewUrls(urls);
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, [newImages]);
 
   const resolveCityId = async (name) => {
     const value = (name || "").trim();
@@ -85,19 +96,27 @@ export default function EditListingPage() {
     try {
       setError("");
       if (descriptionWordCount < 30) return setError("Description must be at least 30 words.");
+      if (newImages.length > 10) return setError("You can upload a maximum of 10 photos.");
+      if (Array.from(newImages).some((file) => file.size > 10 * 1024 * 1024)) {
+        return setError("Each photo must be 10MB or smaller.");
+      }
+
       const city_id = await resolveCityId(form.city);
       const category_id = await resolveCategoryId(form.category);
-      await api.updateListing(id, {
-        title: form.title,
-        description: form.description,
-        price: Number(form.price),
-        city_id,
-        category_id,
-        item_condition: form.item_condition,
-        status: form.status,
-        latitude: form.latitude || null,
-        longitude: form.longitude || null,
-      });
+
+      const fd = new FormData();
+      fd.append("title", form.title);
+      fd.append("description", form.description);
+      fd.append("price", form.price);
+      fd.append("item_condition", form.item_condition);
+      fd.append("status", form.status);
+      if (city_id) fd.append("city_id", String(city_id));
+      if (category_id) fd.append("category_id", String(category_id));
+      if (form.latitude) fd.append("latitude", form.latitude);
+      if (form.longitude) fd.append("longitude", form.longitude);
+      newImages.forEach((file) => fd.append("images", file));
+
+      await api.updateListing(id, fd);
       navigate("/my-listings");
     } catch (err) {
       setError(err.message);
@@ -164,6 +183,50 @@ export default function EditListingPage() {
               <Input placeholder="Latitude" value={form.latitude} onChange={(e) => setForm((s) => ({ ...s, latitude: e.target.value }))} />
               <Input placeholder="Longitude" value={form.longitude} onChange={(e) => setForm((s) => ({ ...s, longitude: e.target.value }))} />
             </div>
+
+            <Input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) => {
+                const files = Array.from(e.target.files || []);
+                if (files.length > 10) {
+                  setError("You can upload a maximum of 10 photos.");
+                } else if (files.some((file) => file.size > 10 * 1024 * 1024)) {
+                  setError("Each photo must be 10MB or smaller.");
+                } else {
+                  setError("");
+                }
+                setNewImages(files);
+              }}
+            />
+            <p className="text-xs text-muted-foreground">Upload up to 10 new photos. Existing listing photos will remain visible unless removed separately.</p>
+
+            {existingImages.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground">Existing photos</p>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                  {existingImages.map((image) => (
+                    <div key={image.id} className="overflow-hidden rounded-md border border-border bg-muted">
+                      <img src={image.image_url} alt="Existing listing" className="h-24 w-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {previewUrls.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground">New image previews</p>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                  {previewUrls.map((url, idx) => (
+                    <div key={url} className="overflow-hidden rounded-md border border-border bg-muted">
+                      <img src={url} alt={`Preview ${idx + 1}`} className="h-24 w-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
             <Button type="submit" className="w-full">Save changes</Button>

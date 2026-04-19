@@ -19,9 +19,7 @@ const listingSchema = z.object({
   item_condition: z.enum(["new", "like_new", "good", "fair", "poor"]).optional(),
 });
 
-const listingEditSchema = listingSchema
-  .partial()
-  .refine((data) => Object.keys(data).length > 0, "Provide at least one field to update.");
+const listingEditSchema = listingSchema.partial();
 
 router.get("/categories", async (_req, res, next) => {
   try {
@@ -144,7 +142,7 @@ router.get("/", async (req, res, next) => {
       : "l.created_at DESC";
 
     const rows = await query(
-      `SELECT l.id, l.title, l.price, ci.name AS city, l.item_condition, l.created_at,
+      `SELECT l.id, l.title, l.price, l.latitude, l.longitude, ci.name AS city, l.item_condition, l.created_at,
               c.name AS category_name,
               u.name AS seller_name,
               ${distanceExpr} AS distance_km,
@@ -245,7 +243,7 @@ router.post("/", requireAuth, upload.array("images", 10), async (req, res, next)
   }
 });
 
-router.patch("/:id", requireAuth, async (req, res, next) => {
+router.patch("/:id", requireAuth, upload.array("images", 10), async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     const data = listingEditSchema.parse(req.body);
@@ -263,8 +261,29 @@ router.patch("/:id", requireAuth, async (req, res, next) => {
       params.push(value);
     }
 
-    if (!fields.length) return res.status(400).json({ error: "No changes provided" });
-    await query(`UPDATE listings SET ${fields.join(", ")} WHERE id = ?`, [...params, id]);
+    if (fields.length) {
+      await query(`UPDATE listings SET ${fields.join(", ")} WHERE id = ?`, [...params, id]);
+    }
+
+    const files = req.files || [];
+    if (files.length) {
+      const [{ max_order }] = await query(
+        "SELECT COALESCE(MAX(sort_order), -1) AS max_order FROM listing_images WHERE listing_id = ?",
+        [id],
+      );
+
+      for (let i = 0; i < files.length; i += 1) {
+        const file = files[i];
+        await addWatermark(file.path, "R4R");
+        const imageUrl = `/uploads/${file.filename}`;
+        await query(
+          "INSERT INTO listing_images(listing_id, image_url, sort_order) VALUES (?, ?, ?)",
+          [id, imageUrl, max_order + 1 + i],
+        );
+      }
+    }
+
+    if (!fields.length && !files.length) return res.status(400).json({ error: "No changes provided" });
     res.json({ ok: true });
   } catch (err) {
     next(err);

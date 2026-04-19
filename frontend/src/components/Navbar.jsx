@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { useAuth } from "../lib/auth";
 import { api } from "../lib/api";
+import logo from "../assets/logo.svg";
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -33,8 +34,8 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link to="/" className="text-xl font-extrabold tracking-tight text-primary">
-          ReList
+        <Link to="/" className="flex items-center gap-2 text-xl font-extrabold tracking-tight text-primary">
+          <img src={logo} alt="ReList Logo" className="h-8 w-8" />
         </Link>
 
         <nav className="flex items-center gap-2">
@@ -44,7 +45,7 @@ export function Navbar() {
           {user && (
             <>
               <NavLink to="/new" className="rounded-md px-3 py-2 text-sm hover:bg-muted">
-                Sell
+                Ads Posted By
               </NavLink>
               <NavLink to="/favorites" className="rounded-md px-3 py-2 text-sm hover:bg-muted">
                 Favorites
@@ -68,6 +69,10 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Button variant="outline" className="hidden sm:flex">
+            Download Mobile App
+          </Button>
+
           {user ? (
             <>
               <span className="hidden text-sm md:block">{user.name}</span>

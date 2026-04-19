@@ -1,0 +1,23 @@
+<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="25" cy="30" r="20" fill="url(#gradient)" />
+
+  <!-- Recycle icon -->
+  <g transform="translate(15,20)" fill="white">
+    <path d="M5 5 L15 5 L15 8 L12 8 L12 12 L15 12 L15 15 L5 15 Z" />
+    <path d="M8 8 L10 8 L10 10 L8 10 Z" fill="none" stroke="white" stroke-width="1"/>
+    <path d="M2 2 L8 2 L8 5 L5 5 Z" />
+    <path d="M12 10 L18 10 L18 13 L15 13 Z" />
+  </g>
+
+  <!-- Text -->
+  <text x="55" y="25" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1F2937">ReList</text>
+  <text x="55" y="42" font-family="Arial, sans-serif" font-size="10" fill="#6B7280">Second-hand marketplace</text>
+</svg>
